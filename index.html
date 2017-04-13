@@ -1,4 +1,3 @@
-
 <html>
 <title>Year Color Clock</title>
 <style>
@@ -14,17 +13,7 @@ html body {
 	position: absolute;
 	vertical-align: middle;
 }
-
-#time {
-	color: black;
-	font-family: Monaco, Lucida Console, monospace;
-	text-align: center;
-	font-size: 3vw;
-	display: block;
-	min-width: 200px;
-	font-weight: 100;
-}
-#extras {
+p {
 	color: black;
 	font-family: Monaco, Lucida Console, monospace;
 	text-align: center;
@@ -42,14 +31,14 @@ html body {
       -ms-transform: translate(-50%,-50%);
           transform: translate(-50%,-50%);
 }
-
 </style>
 </head>
 <body>
 <div style="background-color: rgb(255, 255, 255);" class="background">
 <div class="absolute-center">
 <p id="time">time</p>
-<!--<p id="extras">extras</p>-->
+<p id="extras">extras</p>
+<p id="altitude">altitude</p>
 
 </div>
 </div>
@@ -64,19 +53,32 @@ window.onerror = function(msg, url, linenumber) {
 function toRadians (angle) {
 	return angle * (Math.PI / 180);
 }
+function toDegrees (angle) {
+	return angle * (180/Math.PI);
+}
 function dayofyear(d){
 	var start = new Date(d.getFullYear(), 0, 1);
 	var diff = d-start;
-	diff=Math.ceil(diff/1000/60/60/24)
+	diff=diff/1000/60/60/24;
 	return((diff).toString());
+}
+Date.prototype.stdTimezoneOffset = function() {
+var jan = new Date(this.getFullYear(), 0, 1);
+var jul = new Date(this.getFullYear(), 6, 1);
+return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+}
+Date.prototype.dst = function() {
+    return this.getTimezoneOffset() != this.stdTimezoneOffset();
 }
 function refreshData(){
 	//source: http://holbert.faculty.asu.edu/eee463/SolarCalcs.pdf
+	//var d = new Date(2017,3,15,6,46,05,377);
 	var d = new Date();
 	var n = dayofyear(d);
 	var lst= new Date(d);
 	lst.setHours(lst.getHours()+lst.getTimezoneOffset()/60);
-	var long=-74.938617;
+	var lat=40.3751204
+	var long=-74.9384134;
 	//var long=-73.1
 	var lstm=0;
 	var y=d.getFullYear();
@@ -84,11 +86,16 @@ function refreshData(){
 	var deg=360*(n-81)/length;
 	deg=toRadians(deg);
 	et=9.87*Math.sin(2*deg)-7.53*Math.cos(deg)-1.5*Math.sin(deg);
+	//var decl=toRadians(23.5*Math.sin(toRadians((n+284)/length*6.28)));
+
 	lst.setMilliseconds(lst.getMilliseconds()-((4*(lstm-long)-et)*1000*60));
 	var h=lst.getHours();
 	var m=lst.getMinutes();
 	var s=lst.getSeconds();
 	var ms=lst.getMilliseconds();
+	var decl =toRadians(23.5)*Math.sin(deg)
+	var hourAngle=toRadians((h*60+m+s/60+ms/60000-720)/4);
+	var alt=toDegrees(Math.asin(Math.cos(toRadians(lat))*Math.cos(decl)*Math.cos(hourAngle)+Math.sin(toRadians(lat)*Math.sin(decl))));
 	
  	if (h<=9) {h = '0'+h};
  	if (m<=9) {m = '0'+m};
@@ -96,12 +103,26 @@ function refreshData(){
 	if (ms<=9) {ms='0'+ms};
 	if (ms<=99) {ms='0'+ms};
 	var time = h+":"+m+":"+s+"."+ms;
+	var diff = d-lst;
+
+	//if(d.dst()){diff-=3600000}
+	var dms=Math.abs(diff)%1000;
+	var ds=Math.floor(Math.abs(diff)/1000%60);
+	var dm=Math.floor(Math.abs(diff)/1000/60%60);
+	var dh=Math.floor(Math.abs(diff)/1000/60/60%24);
+	if (dh<=9) {dh = '0'+dh};
+ 	if (dm<=9) {dm = '0'+dm};
+	if (ds<=9) {ds = '0'+ds};
+	if (dms<=9) {dms='0'+dms};
+	if (dms<=99) {dms='0'+dms};
+	var sign=-diff>=0?"":"-";
 	$("p#time").text(time);
-	//$("p#extras").text(et.toFixed(5));
-	//$("p#extras").text(length);
+	//$("p#extras").text("difference: "+sign+dh+":"+dm+":"+ds+"."+dms+" "+diff+' '+(et*60).toFixed(5)+' '+d);
+	$("p#extras").text("difference: "+sign+dh+":"+dm+":"+ds+"."+dms);
+	//$("p#extras").text(d.dst());
+	$("p#altitude").text(alt.toFixed(4)+' degrees');
 	
 	setTimeout(refreshData);
-
 }
   
 refreshData(); // execute function
