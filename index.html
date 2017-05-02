@@ -86,17 +86,15 @@ function refreshData(){
 	var deg=360*(n-81)/length;
 	deg=toRadians(deg);
 	et=9.87*Math.sin(2*deg)-7.53*Math.cos(deg)-1.5*Math.sin(deg);
-	//var decl=toRadians(23.5*Math.sin(toRadians((n+284)/length*6.28)));
-
 	lst.setMilliseconds(lst.getMilliseconds()-((4*(lstm-long)-et)*1000*60));
 	var h=lst.getHours();
 	var m=lst.getMinutes();
 	var s=lst.getSeconds();
 	var ms=lst.getMilliseconds();
-	var decl =toRadians(23.5)*Math.sin(deg)
+	var decl =toRadians(23.43704)*Math.sin(deg);
+	decl=lat<0?-decl:decl;
 	var hourAngle=toRadians((h*60+m+s/60+ms/60000-720)/4);
-	var alt=toDegrees(Math.asin(Math.cos(toRadians(lat))*Math.cos(decl)*Math.cos(hourAngle)+Math.sin(toRadians(lat)*Math.sin(decl))));
-	
+	var alt=toDegrees(Math.asin(Math.cos(toRadians(Math.abs(lat)))*Math.cos(decl)*Math.cos(hourAngle)+Math.sin(toRadians(Math.abs(lat))*Math.sin(decl))));
  	if (h<=9) {h = '0'+h};
  	if (m<=9) {m = '0'+m};
 	if (s<=9) {s = '0'+s};
@@ -104,7 +102,6 @@ function refreshData(){
 	if (ms<=99) {ms='0'+ms};
 	var time = h+":"+m+":"+s+"."+ms;
 	var diff = d-lst;
-
 	//if(d.dst()){diff-=3600000}
 	var dms=Math.abs(diff)%1000;
 	var ds=Math.floor(Math.abs(diff)/1000%60);
