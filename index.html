@@ -46,7 +46,7 @@ canvas {
 <p id="time">time</p>
 <p id="extras">extras</p>
 <p id="altitude">altitude</p>
-<canvas id="canvas" width=200 height=200></canvas>
+<canvas id="canvas" width=220 height=220></canvas>
 <br />
 </div>
 </div>
@@ -123,6 +123,7 @@ function refreshData(){
 	$("p#altitude").text(alt.toFixed(4)+' degrees');
 	var c=document.getElementById("canvas");
 	var ctx=c.getContext("2d");
+	ctx.lineWidth=3;
 	ctx.stroke();ctx.clearRect(0, 0, canvas.width, canvas.height);
 	ctx.beginPath();
 	ctx.arc(canvas.width/2,canvas.height/2,100,0,2*Math.PI);
@@ -135,8 +136,8 @@ function refreshData(){
 	ctx.lineTo(canvas.width/2+Math.cos(toRadians(alt))*100,canvas.height/2-Math.sin(toRadians(alt))*100);
 	ctx.stroke();
 	ctx.beginPath();
-	ctx.moveTo(0,canvas.height/2);
-	ctx.lineTo(canvas.width, canvas.height/2);
+	ctx.moveTo(canvas.width/2-100,canvas.height/2);
+	ctx.lineTo(canvas.width/2+100, canvas.height/2);
 	ctx.stroke();
 	setTimeout(refreshData);
 }
